@@ -78,7 +78,7 @@ router.post("/signin", async (req, res) => { //sign-in route
   }
   const user= await User.findOne({
     username: req.body.username,
-    password: req.body.password,
+    password: req.body.password
   });
 
   if (user) {
