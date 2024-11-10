@@ -32,4 +32,6 @@ const authMiddleware = (req, res, next) => {
     return res.status(403).json({ error: "Unauthorized" });
   }
 };
-module.exports = authMiddleware;
+module.exports={
+  authMiddleware
+};

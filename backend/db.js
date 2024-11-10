@@ -1,3 +1,4 @@
+//imoort mongoose library to lets you connect to mongodb compass
 const mongoose = require("mongoose");
 
 //connect to mongoDB
@@ -6,7 +7,7 @@ mongoose.connect(
 );
 
 // Create Mongoose schema
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
@@ -34,7 +35,8 @@ const UserSchema = new mongoose.Schema({
     maxlength: 50,
   },
 });
-//create bank  schema
+
+//create account schema
 const accountSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId, //reference of user model
@@ -49,10 +51,10 @@ const accountSchema = new mongoose.Schema({
 
 //create mongoose model
 const Account = mongoose.model("Account", accountSchema);
-const User = mongoose.model("User", UserSchema);
+const User = mongoose.model("User", userSchema);
 
 //export
 module.exports = {
   User,
-  Account,
+  Account
 };
