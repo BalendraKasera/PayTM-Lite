@@ -3,7 +3,7 @@ const router = express.Router();
 const z = require("zod");
 const { User, Account } = require("../db");
 const jwt = require("jsonwebtoken");
-const  JWT_SECRET  = require("../config");
+const { JWT_SECRET }= require("../config");
 const { authMiddleware } = require("../middleware");
 
 const signupSchema = z.object({
@@ -14,51 +14,49 @@ const signupSchema = z.object({
 });
 
 router.post("/signup", async (req, res) => {
-  
-    // Check signup schema validity
-    const { success } = signupSchema.safeParse(req.body);
-    if (!success) {
-      return res.status(411).json({
-        message: "Email already taken / Incorrect inputs",
-      });
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({
-      username: req.body.username,
+  // Check signup schema validity
+  const { success } = signupSchema.safeParse(req.body);
+  if (!success) {
+    return res.status(411).json({
+      message: "Try again later",
     });
-    if (existingUser) {
-      return res.status(411).json({
-        message: "Email already taken / Incorrect inputs",
-      });
-    }
+  }
 
-    // Create new user
-    const user = await User.create({
-      username: req.body.username,
-      password: req.body.password,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
+  // Check if user already exists
+  const existingUser = await User.findOne({
+    username: req.body.username,
+  });
+  if (existingUser) {
+    return res.status(411).json({
+      message: "Email already taken / Incorrect inputs",
     });
+  }
 
-    const userId = user._id; // Associate ID with user
+  // Create new user
+  const user = await User.create({
+    username: req.body.username,
+    password: req.body.password,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+  });
 
-    // Initialize balance and create new account
-    await Account.create({
-      userId,
-      balance: 1 + Math.random() * 1000,
-    });
+  const userId = user._id; // Associate ID with user
 
-    // Generate token
-    const token = jwt.sign({ userId }, JWT_SECRET);
+  // Initialize balance and create new account
+  await Account.create({
+    userId,
+    balance: 1 + Math.random() * 1000,
+  });
 
-    // Respond with success message and token
-    res.json({
-      message: "User created successfully",
+  // Generate token
+  const token = jwt.sign({ userId }, JWT_SECRET);
 
-      token: token,
-    });
-  
+  // Respond with success message and token
+  res.json({
+    message: "User created successfully",
+
+    token: token,
+  });
 });
 
 //sign-in schema
