@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 
+
 //import all router from routes
 const rootRouter = require("./Routes/index.js");
 const app = express();

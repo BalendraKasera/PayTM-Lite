@@ -3,11 +3,9 @@ const router = express.Router();
 const z = require("zod");
 const { User, Account } = require("../db");
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../config");
-const  { authMiddleware } = require("../middleware");
+const  JWT_SECRET  = require("../config");
+const { authMiddleware } = require("../middleware");
 
-
-//create a signup schema
 const signupSchema = z.object({
   username: z.string().email(),
   password: z.string(),
@@ -16,69 +14,70 @@ const signupSchema = z.object({
 });
 
 router.post("/signup", async (req, res) => {
-  //check signup schema valid
-  const { success } = signupSchema.safeParse(req.body);
-  if (!success) {
-    res.status(411).json({
-      message: "Email already taken / Incorrect inputs",
+  
+    // Check signup schema validity
+    const { success } = signupSchema.safeParse(req.body);
+    if (!success) {
+      return res.status(411).json({
+        message: "Email already taken / Incorrect inputs",
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      username: req.body.username,
     });
-  }
+    if (existingUser) {
+      return res.status(411).json({
+        message: "Email already taken / Incorrect inputs",
+      });
+    }
 
-  //check existing user
-  const existingUser = await User.findOne({
-    username: req.body.username,
-  });
-  if (existingUser) {
-    res.status(411).json({
-      message: "Email already taken / Incorrect inputs",
+    // Create new user
+    const user = await User.create({
+      username: req.body.username,
+      password: req.body.password,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
     });
-  }
-  //create new user
-  const user = await User.create({
-    username: req.body.username,
-    password: req.body.password,
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-  });
 
-  const userId = user._id; //associate id to user
+    const userId = user._id; // Associate ID with user
 
-  //initialize balance .. // create new account
-  await Account.create({
-    userId,
-    balance:1+Math.random()*1000
-  })
-//.....
-  const token = jwt.sign( //create token
-    {
+    // Initialize balance and create new account
+    await Account.create({
       userId,
-    },
-    JWT_SECRET
-  );
+      balance: 1 + Math.random() * 1000,
+    });
 
-  res.json({
-    message: "User created successfully",
-    token: token, //send token to user so that it can be used for further future authentication by user.
-  });
+    // Generate token
+    const token = jwt.sign({ userId }, JWT_SECRET);
+
+    // Respond with success message and token
+    res.json({
+      message: "User created successfully",
+
+      token: token,
+    });
+  
 });
 
-
-//sign-in schema 
+//sign-in schema
 const signInSchema = z.object({
   username: z.string().email(),
   password: z.string(),
 });
 
-router.post("/signin", async (req, res) => { //sign-in route
+router.post("/signin", async (req, res) => {
+  //sign-in route
   const { success } = signInSchema.safeParse(req.body);
   if (!success) {
     res.status(411).json({
       message: "Email already taken / Incorrect inputs",
     });
   }
-  const user= await User.findOne({
+  const user = await User.findOne({
     username: req.body.username,
-    password: req.body.password
+    password: req.body.password,
   });
 
   if (user) {
@@ -94,14 +93,12 @@ router.post("/signin", async (req, res) => { //sign-in route
   });
 });
 
-
 //update user information
 const updateSchema = z.object({
   password: z.string().optional(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
 });
-
 
 //route for update user information
 router.put("/", authMiddleware, async (req, res) => {
@@ -110,7 +107,7 @@ router.put("/", authMiddleware, async (req, res) => {
     res.status(411).json({
       message: "Error while updating information",
     });
-  } 
+  }
   await User.updateOne(req.body, {
     id: req.userId,
   });
@@ -118,7 +115,6 @@ router.put("/", authMiddleware, async (req, res) => {
     message: "Updated successfully",
   });
 });
-
 
 //get user from backend filterable via fisrtname or lastname;
 router.get("/bulk", async (req, res) => {
