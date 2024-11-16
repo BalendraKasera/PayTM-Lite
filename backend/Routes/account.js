@@ -37,7 +37,7 @@ router.post("/transfer", authMiddleware, async (req, res) => {
     try {
         session.startTransaction();
         
-        const { amount, to } = req.body;
+        const { to , amount } = req.body;
         
         // Validate amount
         if (!amount || amount <= 0) {
