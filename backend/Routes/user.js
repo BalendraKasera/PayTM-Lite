@@ -1,4 +1,5 @@
 const express = require("express");
+const bcrypt=require("bcrypt");
 const router = express.Router();
 const z = require("zod");
 const { User, Account } = require("../db");
@@ -43,9 +44,10 @@ router.post("/signup", async (req, res) => {
   const userId = user._id; // Associate ID with user
 
   // Initialize balance and create new account
+  
   await Account.create({
     userId,
-    balance: 1 + Math.random() * 1000,
+    balance: 1+ Math.random()*1000,
   });
 
   // Generate token
@@ -77,6 +79,12 @@ router.post("/signin", async (req, res) => {
     username: req.body.username,
     password: req.body.password,
   });
+
+  //compare password
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(400).json({ message: "Invalid credentials" });
+  }
 
   if (user) {
     const token = jwt.sign({ userId: user._id }, JWT_SECRET);

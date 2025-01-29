@@ -1,5 +1,6 @@
 //imoort mongoose library to lets you connect to mongodb compass
 const mongoose = require("mongoose");
+const bcrypt=require('bcrypt');
 
 //connect to mongoDB
 mongoose.connect(
@@ -48,6 +49,17 @@ const accountSchema = new mongoose.Schema({
     required: true,
   },
 });
+
+//hash password before save into the database
+userSchema.pre("save" , async function(next){
+  if(!this.isModified("password")){
+    return next();
+  }
+    this.password=await bcrypt.hash(this.password, 10);
+    next();
+  
+})
+
 
 //create mongoose model
 const Account = mongoose.model("Account", accountSchema);
